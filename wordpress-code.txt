@@ -1,0 +1,57 @@
+.relatedp { padding:0px; margin: 0; padding-top:0.24em!important; padding-bottom:0.1em!important; width:100%; display: block; font-weight:bold; background-color:inherit; border:0!important; border-left:4px solid #16A085!important; text-decoration:none; } .relatedp:active, .relatedp:hover { opacity: 1; transition: opacity 250ms; webkit-transition: opacity 250ms; text-decoration:none; } .relatedp { transition: background-color 250ms; webkit-transition: background-color 250ms; opacity: 1; transition: opacity 250ms; webkit-transition: opacity 250ms; } .relatedp .ctaText { font-weight:bold; color:#16A085; text-decoration:none; font-size: 16px; } .relatedp .postTitle { color:#3498DB; text-decoration: underline!important; font-size: 16px; } .relatedp:hover .postTitle { text-decoration: underline!important; } 
+
+table td,
+table.wp-block-table td {
+	padding: 12px;
+	margin: 0px;
+	border-top: 1px solid #dddddd;
+	border-top: 1px solid rgba(0, 0, 0, 0.12);
+	box-sizing: border-box;
+	text-transform: capitalize;
+}
+
+
+--------------------------------------------------------------
+/*@ Get Related Posts by categories */
+if ( ! function_exists( 'tf_get_related_posts' ) ) {
+    function tf_get_related_posts() {
+        ob_start();
+        $id = get_the_ID();  
+        /*@ Get current post's categories */
+        $categories = get_the_category($id); // Disabled this if you want tag wise posts 
+        /*@ Get current post's Tags */
+        // $categories = wp_get_post_tags($id); // Enable this for tags wise related posts
+ 
+        if (!empty($categories)) :
+ 
+            /*@ Pluck all categories Ids */
+            $categories_ids = array_column( $categories, 'term_id' );
+            $related_args = [
+                'post_status'         => 'publish',
+                'category__in'        => $categories_ids, // Disabled this if you want tag wise posts
+                //'tag__in'        => $categories_ids, // Enable this for tag wise related posts
+                'post__not_in'        => [ $id ], // Exclude Current Post
+                'posts_per_page'      => 3, // Number of related posts to show
+                'ignore_sticky_posts' => 1
+            ];
+            $get_posts = new WP_Query( $related_args );
+ 
+            if ( $get_posts->have_posts() ) :
+ 
+                echo '<h3 class="has-text-color" id="relatedp" style="color:#312929"><u>Related Post You may Like: </u></h3>';
+ 
+                while ( $get_posts->have_posts() ) : $get_posts->the_post();
+ 
+                    echo '<div style="clear:both;margin-bottom:1em;"><a href="'.get_the_permalink().'" target="_blank" rel="dofollow noopener" class="relatedp">
+					<div style="padding-left:1em;"><span class="ctaText">READ : </span> <span class="postTitle">'.get_the_title().'</span></div></a></div>';
+                endwhile;
+                echo '</ul>';
+            endif;
+        endif; 
+        return ob_get_clean(); 
+    }
+    add_shortcode('tf_related_posts', 'tf_get_related_posts'); # [tf_related_posts]
+}
+
+
+-------------------------------------------------------------
